@@ -6,7 +6,7 @@ const App = () => {
 }
 
 const width = window.innerWidth;
-const height = window.innerWidth;
+const height = window.innerHeight;
 const device = navigator.userAgent;
 const isPhone = (
   (device.indexOf('iPhone') > 0 &&
@@ -19,10 +19,10 @@ const screen = Math.min(
   width, height,
   isPhone ? width * height : 720
 );
-const halfScreen = screen / 2;
 const block = screen / 7;
 const marginSide = (width - screen) / 2;
-const marginTop = (height - 6 * block) / 2;
+const marginTop = (height - 7 * block) / 2;
+const halfHeight = screen / 2 + marginTop;
 const keys = [
   'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P',
   'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
@@ -57,8 +57,7 @@ const sketch = (p: p5): void => {
         let button = p.createButton(key);
         let x = (j + 1.5) * size -
           diff * size / 2 + 4 + marginSide;
-        let y = (i - 2) * size +
-          screen + marginTop;
+        let y = (i - 2) * size + screen + marginTop;
         let side = size - 8;
         if (key === 'ENTER') {
           x -= size / 2;
@@ -71,8 +70,7 @@ const sketch = (p: p5): void => {
         button.size(side, size - 8);
         button.style('color', '#FFFFFF');
         button.style('font-weight', 'bold');
-        button.mousePressed(
-          () => keyboardPressed(key));
+        button.mousePressed(() => keyboardPressed(key));
         keyboard.push(button);
       }
     }
@@ -187,8 +185,7 @@ const sketch = (p: p5): void => {
     let initButton = p.createButton("PLAY AGAIN");
     initButton.size(block, block / 3);
     initButton.style('font-size', `${block / 8}px`);
-    initButton.position((width - block) / 2,
-      halfScreen + block / 2.5);
+    initButton.position((width - block) / 2, halfHeight - block / 1.5);
     initButton.mousePressed(() => {
       setGame();
       initButton.remove();
@@ -196,19 +193,19 @@ const sketch = (p: p5): void => {
 
     p.noStroke();
     p.fill('#FFFFFF');
-    p.rect(halfScreen, halfScreen, halfScreen, halfScreen / 2);
+    p.rect(screen / 2, halfHeight - block, screen / 2, screen / 4);
     p.fill('#000000');
     p.textSize(block / 3);
     p.textStyle(p.NORMAL);
     p.text(
       score > 4 ? "Congrats! 🎉" : "Oops!",
-      halfScreen, halfScreen - block / 2
+      screen / 2, halfHeight - block * 1.5
     );
     p.textSize(block / 6);
-    p.text("The word was　　　　", halfScreen, halfScreen);
+    p.text("The word was　　　　", screen / 2, halfHeight - block);
     p.textStyle(p.BOLD);
-    p.text(answer, halfScreen +
-      p.textWidth("The word was") / 2, halfScreen);
+    p.text(answer, (screen +
+      p.textWidth("The word was")) / 2, halfHeight - block);
   }
 
   p.preload = (): void => {
@@ -222,7 +219,7 @@ const sketch = (p: p5): void => {
 
   p.setup = (): void => {
     p.createCanvas(screen, screen + marginTop).parent('main');
-    p.strokeWeight(2.5);
+    p.strokeWeight(block / 40);
     p.rectMode(p.CENTER);
     p.textAlign(p.CENTER, p.CENTER);
 
@@ -281,12 +278,12 @@ const sketch = (p: p5): void => {
 
       p.noStroke();
       p.fill('#FFFFFF');
-      p.rect(halfScreen + marginSide, halfScreen,
-        halfScreen / 1.5, halfScreen / 4);
+      p.rect(screen / 2, halfHeight - block,
+        screen / 3, screen / 8);
       p.fill('#000000');
       p.textSize(block / 5);
       p.text("Not in word list",
-        halfScreen + marginSide, halfScreen);
+        screen / 2, halfHeight - block);
 
       if (p.frameCount % 60 === alertMod) {
         alertMod = 60;
