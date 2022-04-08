@@ -21,7 +21,8 @@ const screen = Math.min(
 );
 const halfScreen = screen / 2;
 const block = screen / 7;
-const margin = (width - screen) / 2;
+const marginSide = (width - screen) / 2;
+const marginTop = (height - 6 * block) / 2;
 const keys = [
   'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P',
   'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
@@ -55,8 +56,9 @@ const sketch = (p: p5): void => {
         let key = keys[j % 10 + i * 10 - p.int(i === 2)];
         let button = p.createButton(key);
         let x = (j + 1.5) * size -
-          diff * size / 2 + 4 + margin;
-        let y = (i - 0.5) * size + screen;
+          diff * size / 2 + 4 + marginSide;
+        let y = (i - 2) * size +
+          screen + marginTop;
         let side = size - 8;
         if (key === 'ENTER') {
           x -= size / 2;
@@ -194,20 +196,18 @@ const sketch = (p: p5): void => {
 
     p.noStroke();
     p.fill('#FFFFFF');
-    p.rect(halfScreen + margin, halfScreen,
-      halfScreen, halfScreen / 2);
+    p.rect(halfScreen, halfScreen, halfScreen, halfScreen / 2);
     p.fill('#000000');
     p.textSize(block / 3);
     p.textStyle(p.NORMAL);
     p.text(
       score > 4 ? "Congrats! 🎉" : "Oops!",
-      halfScreen + margin, halfScreen - block / 2
+      halfScreen, halfScreen - block / 2
     );
     p.textSize(block / 6);
-    p.text("The word was　　　　",
-      halfScreen + margin, halfScreen);
+    p.text("The word was　　　　", halfScreen, halfScreen);
     p.textStyle(p.BOLD);
-    p.text(answer, halfScreen + margin +
+    p.text(answer, halfScreen +
       p.textWidth("The word was") / 2, halfScreen);
   }
 
@@ -221,7 +221,7 @@ const sketch = (p: p5): void => {
   }
 
   p.setup = (): void => {
-    p.createCanvas(screen + margin, screen).parent('main');
+    p.createCanvas(screen, screen + marginTop).parent('main');
     p.strokeWeight(2.5);
     p.rectMode(p.CENTER);
     p.textAlign(p.CENTER, p.CENTER);
@@ -238,7 +238,8 @@ const sketch = (p: p5): void => {
     for (let i = 0; i < 5; i++) {
       for (let j = 0; j < 6; j++) {
         p.push();
-        p.translate((i + 1.5) * block + margin, (j + 1) * block);
+        p.translate((i + 1.5) * block, j * block +
+          marginTop);
         if (wordIndex === i && wordCount === j) {
           let ratio = p.abs(p.cos(p.PI / 180 * flipAngle));
           p.scale(1, ratio);
@@ -280,12 +281,12 @@ const sketch = (p: p5): void => {
 
       p.noStroke();
       p.fill('#FFFFFF');
-      p.rect(halfScreen + margin, halfScreen,
+      p.rect(halfScreen + marginSide, halfScreen,
         halfScreen / 1.5, halfScreen / 4);
       p.fill('#000000');
       p.textSize(block / 5);
       p.text("Not in word list",
-        halfScreen + margin, halfScreen);
+        halfScreen + marginSide, halfScreen);
 
       if (p.frameCount % 60 === alertMod) {
         alertMod = 60;
@@ -303,7 +304,7 @@ const sketch = (p: p5): void => {
 
 const Main: React.FC = () => {
   useEffect(() => { new p5(sketch) }, []);
-  return (<div id='main' />);
+  return (<div style={{ textAlign: 'center' }} id='main' />);
 }
 
 export default App;
