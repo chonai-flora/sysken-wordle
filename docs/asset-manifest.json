@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/sysken-wordle/static/css/main.e6c13ad2.css",
+    "main.js": "/sysken-wordle/static/js/main.e1616580.js",
+    "static/js/787.383d5dad.chunk.js": "/sysken-wordle/static/js/787.383d5dad.chunk.js",
+    "index.html": "/sysken-wordle/index.html",
+    "main.e6c13ad2.css.map": "/sysken-wordle/static/css/main.e6c13ad2.css.map",
+    "main.e1616580.js.map": "/sysken-wordle/static/js/main.e1616580.js.map",
+    "787.383d5dad.chunk.js.map": "/sysken-wordle/static/js/787.383d5dad.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.e1616580.js"
+  ]
+}

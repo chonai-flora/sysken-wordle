@@ -2,7 +2,7 @@ import p5 from 'p5';
 import React, { useEffect } from 'react';
 
 const App = () => {
-  return (<div className="App" ><Main /></div>);
+  return (<Main />);
 }
 
 const width = window.innerWidth;
@@ -49,14 +49,13 @@ let alertDelta: number;
 const sketch = (p: p5): void => {
   const setKeyboard = (): void => {
     keyboard = [];
-    let size = screen / 12;
+    const size = screen / 12;
     for (let i = 0; i < 3; i++) {
-      let diff = p.int(i === 0);
+      const diff = p.int(i === 0);
       for (let j = 0; j < diff + 9; j++) {
-        let key = keys[j % 10 + i * 10 - p.int(i === 2)];
-        let button = p.createButton(key);
-        let x = (j + 1.5) * size -
-          diff * size / 2 + 4 + marginSide;
+        const key = keys[j % 10 + i * 10 - p.int(i === 2)];
+        const button = p.createButton(key);
+        let x = (j + 1.5) * size - diff * size / 2 + 4 + marginSide;
         let y = (i - 2) * size + screen + marginTop;
         let side = size - 8;
         if (key === 'ENTER') {
@@ -84,7 +83,7 @@ const sketch = (p: p5): void => {
         wordCards[wordCount][wordIndex] = '';
       }
     } else if (key === 'ENTER') {
-      let word = wordCards[wordCount].join('');
+      const word = wordCards[wordCount].join('');
       if (wordIndex >= 5) {
         if (word === answer ||
           enWords.includes(word.toLowerCase())) {
@@ -129,10 +128,10 @@ const sketch = (p: p5): void => {
 
   const checkAnswer = (): void => {
     responceColors = [];
-    let mismatches = answer.split('');
+    const mismatches = answer.split('');
     for (let i = 0; i < 5; i++) {
-      let c = wordCards[wordCount][i];
-      let index = keys.indexOf(c);
+      const c = wordCards[wordCount][i];
+      const index = keys.indexOf(c);
       if (c === answer[i]) {
         score++;
         mismatches[i] = ' ';
@@ -147,8 +146,8 @@ const sketch = (p: p5): void => {
     }
 
     for (let i = 0; i < 5; i++) {
-      let c = wordCards[wordCount][i];
-      let index = keys.indexOf(c);
+      const c = wordCards[wordCount][i];
+      const index = keys.indexOf(c);
       if (mismatches.includes(c)) {
         mismatches[mismatches.indexOf(c)] = ' ';
         responceColors[i] = '#B59F3B';
@@ -169,11 +168,9 @@ const sketch = (p: p5): void => {
     flipAngle = wordCount = wordIndex = 0;
     alertMod = alertDelta = 60;
     wordCards = Array(6).fill('').map(
-      () => Array(5).fill('')
-    );
+      () => Array(5).fill(''));
     wordColors = Array(6).fill('#000000').map(
-      () => Array(5).fill('#000000')
-    );
+      () => Array(5).fill('#000000'));
     answer = "";
     keyColors = Array(keyboard.length).fill('#818384');
     setKeyColors();
@@ -182,7 +179,7 @@ const sketch = (p: p5): void => {
 
   const showResult = (): void => {
     gameEnds = true;
-    let initButton = p.createButton("PLAY AGAIN");
+    const initButton = p.createButton("PLAY AGAIN");
     initButton.size(block, block / 3);
     initButton.style('font-size', `${block / 8}px`);
     initButton.position((width - block) / 2, halfHeight - block / 1.5);
@@ -235,19 +232,18 @@ const sketch = (p: p5): void => {
     for (let i = 0; i < 5; i++) {
       for (let j = 0; j < 6; j++) {
         p.push();
-        p.translate((i + 1.5) * block, j * block +
-          marginTop);
+        p.translate((i + 1.5) * block, j * block + marginTop);
         if (wordIndex === i && wordCount === j) {
-          let ratio = p.abs(p.cos(p.PI / 180 * flipAngle));
+          const ratio = p.abs(p.cos(p.PI / 180 * flipAngle));
           p.scale(1, ratio);
         }
         if (alertMod !== 60 && wordCount === j) {
-          let theta = p.PI / 6 * (p.frameCount % 60 - alertMod);
+          const theta = p.PI / 6 * (p.frameCount % 60 - alertMod);
           p.translate(p.max(alertDelta, 0) * p.sin(theta), 0);
         }
         p.fill(wordColors[j][i]);
         p.stroke('#3A3A3C');
-        p.square(0, 0, block - 10, 10);
+        p.square(0, 0, block - 10, block / 10);
         p.fill('#FFFFFF');
         p.noStroke();
         p.textSize(block / 2);
@@ -292,7 +288,7 @@ const sketch = (p: p5): void => {
   }
 
   p.keyPressed = (): void => {
-    let c = p.key.toUpperCase().replace('BACKSPACE', '⌫');
+    const c = p.key.toUpperCase().replace('BACKSPACE', '⌫');
     if (keys.includes(c)) {
       keyboardPressed(c);
     }
