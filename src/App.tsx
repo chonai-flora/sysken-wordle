@@ -1,62 +1,61 @@
-import p5 from 'p5';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 
-const App = () => {
-  return (<Main />);
+import P5Instance, { getWindowData } from './types/p5-instance';
+
+// eslint-disable-next-line
+const get2dArray = <T, _>(w: number, h: number, value: T) => {
+  return Array.from(new Array(h), () => new Array(w).fill(value));
 }
 
-const width = window.innerWidth;
-const height = window.innerHeight;
-const device = navigator.userAgent;
-const isPhone = (
-  (device.indexOf('iPhone') > 0 &&
-    device.indexOf('iPad') === -1) ||
-  device.indexOf('iPod') > 0 ||
-  device.indexOf('Android') > 0
-);
+const sketch = (p5: P5Instance): void => {
+  const windowData = getWindowData();
+  const screen = windowData.screenSize;
+  const block = screen / 7;
+  const marginTop = windowData.marginTop;
+  const marginSide = windowData.marginSide;
+  const halfHeight = screen / 2 + marginTop;
 
-const screen = Math.min(
-  width, height,
-  isPhone ? width * height : 720
-);
-const block = screen / 7;
-const marginSide = (width - screen) / 2;
-const marginTop = (height - 7 * block) / 2;
-const halfHeight = screen / 2 + marginTop;
-const keys = [
-  'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P',
-  'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
-  'ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '⌫'
-];
+  const keys = [
+    'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P',
+    'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
+    'ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '⌫'
+  ];
 
-let answer: string;
-let enWords: string[];
-let keyboard: any[];
-let keyColors: string[];
-let responceColors: string[];
+  let answer = "";
+  let enWords: string[] = [];
 
-let score: number;
-let gameEnds: boolean;
-let isFlipping: boolean;
-let flipAngle: number;
-let wordCount: number;
-let wordIndex: number;
-let wordCards: string[][];
-let wordColors: string[][];
-let alertMod: number;
-let alertDelta: number;
+  const keyboard: any[] = [];
+  const keyColors: string[] = new Array(keys.length);
+  const responceColors: string[] = new Array(keys.length);
 
-const sketch = (p: p5): void => {
+  const game = {
+    score: 0,
+    ends: false,
+    flipAngle: 0
+  };
+
+  const words = {
+    count: 0,
+    currentIndex: 0,
+    cards: get2dArray(5, 6, ''),
+    colors: get2dArray(5, 6, '#000000'),
+    isFlipping: false,
+  };
+
+  const alert = {
+    mod: 60,
+    delta: 60
+  };
+
   const setKeyboard = (): void => {
-    keyboard = [];
     const size = screen / 12;
     for (let i = 0; i < 3; i++) {
-      const diff = p.int(i === 0);
-      for (let j = 0; j < diff + 9; j++) {
-        const key = keys[j % 10 + i * 10 - p.int(i === 2)];
-        const button = p.createButton(key);
+      const diff = i === 0 ? 1 : 0;
+      for (let j = 0; j < 9 + diff; j++) {
+        const key = keys[j % 10 + i * 10 - p5.int(i === 2)];
+        const button = p5.createButton(key);
         let x = (j + 1.5) * size - diff * size / 2 + 4 + marginSide;
-        let y = (i - 2) * size + screen + marginTop;
+        let y = (i - 1.25) * size + screen + marginTop;
         let side = size - 8;
         if (key === 'ENTER') {
           x -= size / 2;
@@ -76,64 +75,61 @@ const sketch = (p: p5): void => {
   }
 
   const keyboardPressed = (key: string): void => {
-    if (isFlipping || gameEnds) return;
+    if (words.isFlipping || game.ends) return;
     if (key === '⌫') {
-      if (wordIndex > 0) {
-        wordIndex--;
-        wordCards[wordCount][wordIndex] = '';
+      if (words.currentIndex > 0) {
+        words.currentIndex--;
+        words.cards[words.count][words.currentIndex] = '';
       }
     } else if (key === 'ENTER') {
-      const word = wordCards[wordCount].join('');
-      if (wordIndex >= 5) {
+      const word = words.cards[words.count].join('');
+      if (words.currentIndex >= 5) {
         if (word === answer ||
           enWords.includes(word.toLowerCase())) {
-          isFlipping = true;
-          score = 0;
-          wordIndex = 0;
+          words.isFlipping = true;
+          game.score = 0;
+          words.currentIndex = 0;
           checkAnswer();
         }
         else {
-          alertMod = p.frameCount % 60;
-          alertDelta = 8;
+          alert.mod = p5.frameCount % 60;
+          alert.delta = 8;
         }
       }
-    } else if (wordIndex < 5) {
-      wordCards[wordCount][wordIndex] = key;
-      wordIndex++;
+    } else if (words.currentIndex < 5) {
+      words.cards[words.count][words.currentIndex] = key;
+      words.currentIndex++;
     }
   }
 
   const setKeyColors = (): void => {
     for (let i = 0; i < keyboard.length; i++) {
-      keyboard[i].style(
-        'background-color', keyColors[i]);
+      keyboard[i].style('background-color', keyColors[i]);
     }
 
-    if (wordCount > 5 || score > 4) {
+    if (words.count > 5 || game.score > 4) {
       showResult();
     }
   }
 
-  const setAnswer = (): void => {
-    while (!answer.split('').every(
-      (e) => keys.includes(e) && e !== '⌫') ||
-      !answer.length || answer.length !== 5) {
-      answer = ((window as any).prompt(
-        "答えとなる5文字の英単語を入力してください\n" +
-        "未入力の場合はランダムに設定されます", '') ||
-        p.shuffle(enWords)[0])
-        .toUpperCase();
+  const updateAnswer = (): void => {
+    const message = "答えとなる5文字の英単語を入力してください\n未入力の場合はランダムに設定されます";
+
+    while (!answer.length || answer.length !== 5
+      || answer.split('').some((e) => !keys.includes(e) || e === '⌫')) {
+      const index = p5.int(p5.random(enWords.length));
+      answer = (window.prompt(message, '') || enWords[index]).toUpperCase();
     }
   }
 
   const checkAnswer = (): void => {
-    responceColors = [];
+    responceColors.splice(0);
     const mismatches = answer.split('');
     for (let i = 0; i < 5; i++) {
-      const c = wordCards[wordCount][i];
+      const c = words.cards[words.count][i];
       const index = keys.indexOf(c);
       if (c === answer[i]) {
-        score++;
+        game.score++;
         mismatches[i] = ' ';
         keyColors[index] =
           responceColors[i] = '#538D4E';
@@ -146,7 +142,7 @@ const sketch = (p: p5): void => {
     }
 
     for (let i = 0; i < 5; i++) {
-      const c = wordCards[wordCount][i];
+      const c = words.cards[words.count][i];
       const index = keys.indexOf(c);
       if (mismatches.includes(c)) {
         mismatches[mismatches.indexOf(c)] = ' ';
@@ -159,145 +155,156 @@ const sketch = (p: p5): void => {
   }
 
   const setCardColor = (): void => {
-    wordColors[wordCount][wordIndex] = responceColors[wordIndex];
+    words.colors[words.count][words.currentIndex] = responceColors[words.currentIndex];
   }
 
   const setGame = (): void => {
-    score = 0;
-    gameEnds = isFlipping = false;
-    flipAngle = wordCount = wordIndex = 0;
-    alertMod = alertDelta = 60;
-    wordCards = Array(6).fill('').map(
-      () => Array(5).fill(''));
-    wordColors = Array(6).fill('#000000').map(
-      () => Array(5).fill('#000000'));
-    answer = "";
-    keyColors = Array(keyboard.length).fill('#818384');
+    p5.textStyle(p5.BOLD);
+
+    game.score = 0;
+    game.ends = false;
+    words.isFlipping = false;
+    game.flipAngle = 0;
+    words.count = 0;
+    words.currentIndex = 0;
+    alert.mod = 60;
+    alert.delta = 60;
+    words.cards = get2dArray(5, 6, '');
+    words.colors = get2dArray(5, 6, '#000000');
+    keyColors.fill('#818384', 0, keyboard.length);
     setKeyColors();
-    p.textStyle(p.BOLD);
+    answer = "";
+    // setAnswer("");
   }
 
   const showResult = (): void => {
-    gameEnds = true;
-    const initButton = p.createButton("PLAY AGAIN");
+    game.ends = true;
+    const initButton = p5.createButton("PLAY AGAIN");
     initButton.size(block, block / 3);
     initButton.style('font-size', `${block / 8}px`);
-    initButton.position((width - block) / 2, halfHeight - block / 1.5);
+    initButton.position((p5.windowWidth - block) / 2, halfHeight - block / 4);
     initButton.mousePressed(() => {
       setGame();
       initButton.remove();
     });
 
-    p.noStroke();
-    p.fill('#FFFFFF');
-    p.rect(screen / 2, halfHeight - block, screen / 2, screen / 4);
-    p.fill('#000000');
-    p.textSize(block / 3);
-    p.textStyle(p.NORMAL);
-    p.text(
-      score > 4 ? "Congrats! 🎉" : "Oops!",
-      screen / 2, halfHeight - block * 1.5
-    );
-    p.textSize(block / 6);
-    p.text("The word was　　　　", screen / 2, halfHeight - block);
-    p.textStyle(p.BOLD);
-    p.text(answer, (screen +
-      p.textWidth("The word was")) / 2, halfHeight - block);
+    p5.noStroke();
+    p5.fill('#FFFFFF');
+    p5.rect(screen / 2, halfHeight - block, screen / 2, screen / 4);
+    p5.fill('#000000');
+    p5.textSize(block / 3);
+    p5.textStyle(p5.NORMAL);
+    p5.text(game.score > 4 ? "Congrats! 🎉" : "Oops!", screen / 2, halfHeight - block * 1.5);
+    p5.textSize(block / 6);
+    p5.text("The word was　　　　", screen / 2, halfHeight - block);
+    p5.textStyle(p5.BOLD);
+    p5.text(answer, (screen + p5.textWidth("The word was")) / 2, halfHeight - block);
   }
 
-  p.preload = (): void => {
-    enWords = p.loadStrings(
+  p5.preload = (): void => {
+    const path =
       "https://gist.githubusercontent.com/" +
       "cfreshman/a03ef2cba789d8cf00c08f767e0fad7b/" +
       "raw/28804271b5a226628d36ee831b0e36adef9cf449/" +
-      "wordle-answers-alphabetical.txt"
-    );
+      "wordle-answers-alphabetical.txt";
+    enWords = p5.loadStrings(path);
   }
 
-  p.setup = (): void => {
-    p.createCanvas(screen, screen + marginTop).parent('main');
-    p.strokeWeight(block / 40);
-    p.rectMode(p.CENTER);
-    p.textAlign(p.CENTER, p.CENTER);
+  p5.setup = (): void => {
+    p5.createCanvas(screen, screen + marginTop).parent('main');
+    p5.strokeWeight(block / 40);
+    p5.rectMode(p5.CENTER);
+    p5.textAlign(p5.CENTER, p5.CENTER);
 
     setKeyboard();
     setGame();
   }
 
-  p.draw = (): void => {
-    if (gameEnds) return;
-    if (!answer.length) setAnswer();
+  p5.draw = (): void => {
+    if (game.ends) return;
+    if (!answer.length) updateAnswer();
 
-    (p as any).clear();
-    for (let i = 0; i < 5; i++) {
-      for (let j = 0; j < 6; j++) {
-        p.push();
-        p.translate((i + 1.5) * block, j * block + marginTop);
-        if (wordIndex === i && wordCount === j) {
-          const ratio = p.abs(p.cos(p.PI / 180 * flipAngle));
-          p.scale(1, ratio);
+    (p5 as any).clear();
+    for (let row = 0; row < 5; row++) {
+      for (let col = 0; col < 6; col++) {
+        p5.push();
+        p5.translate((row + 1.5) * block, col * block + marginTop);
+        if (words.currentIndex === row && words.count === col) {
+          const ratio = p5.abs(p5.cos(p5.PI / 180 * game.flipAngle));
+          p5.scale(1, ratio);
         }
-        if (alertMod !== 60 && wordCount === j) {
-          const theta = p.PI / 6 * (p.frameCount % 60 - alertMod);
-          p.translate(p.max(alertDelta, 0) * p.sin(theta), 0);
+        if (alert.mod !== 60 && words.count === col) {
+          const theta = p5.PI / 6 * (p5.frameCount % 60 - alert.mod);
+          p5.translate(p5.max(alert.delta, 0) * p5.sin(theta), 0);
         }
-        p.fill(wordColors[j][i]);
-        p.stroke('#3A3A3C');
-        p.square(0, 0, block - 10, block / 10);
-        p.fill('#FFFFFF');
-        p.noStroke();
-        p.textSize(block / 2);
-        p.text(wordCards[j][i], 0, 0);
-        p.pop();
+
+        p5.fill(words.colors[col][row]);
+        p5.stroke('#3A3A3C');
+        p5.square(0, 0, block - 10, block / 10);
+        p5.fill('#FFFFFF');
+        p5.noStroke();
+        p5.textSize(block / 2);
+        p5.text(words.cards[col][row], 0, 0);
+        p5.pop();
       }
     }
 
-    if (isFlipping) {
-      flipAngle += 10;
-      if (flipAngle === 90) {
+    if (words.isFlipping) {
+      game.flipAngle += 10;
+      if (game.flipAngle === 90) {
         setCardColor();
-      } else if (flipAngle === 180) {
-        wordIndex++;
-        flipAngle = 0;
+      } else if (game.flipAngle === 180) {
+        words.currentIndex++;
+        game.flipAngle = 0;
       }
-      if (wordIndex > 4) {
-        flipAngle = 0;
-        isFlipping = false;
-        wordCount++;
-        wordIndex = 0;
+
+      if (words.currentIndex > 4) {
+        game.flipAngle = 0;
+        words.isFlipping = false;
+        words.count++;
+        words.currentIndex = 0;
         setKeyColors();
       }
     }
 
-    if (alertMod !== 60) {
-      alertDelta -= 0.2;
+    if (alert.mod !== 60) {
+      alert.delta -= 0.2;
 
-      p.noStroke();
-      p.fill('#FFFFFF');
-      p.rect(screen / 2, halfHeight - block,
+      p5.noStroke();
+      p5.fill('#FFFFFF');
+      p5.rect(screen / 2, halfHeight - block,
         screen / 3, screen / 8);
-      p.fill('#000000');
-      p.textSize(block / 5);
-      p.text("Not in word list",
-        screen / 2, halfHeight - block);
+      p5.fill('#000000');
+      p5.textSize(block / 5);
+      p5.text("Not in word list", screen / 2, halfHeight - block);
 
-      if (p.frameCount % 60 === alertMod) {
-        alertMod = 60;
+      if (p5.frameCount % 60 === alert.mod) {
+        alert.mod = 60;
       }
     }
   }
 
-  p.keyPressed = (): void => {
-    const c = p.key.toUpperCase().replace('BACKSPACE', '⌫');
+  p5.keyPressed = (): void => {
+    const c = p5.key.toUpperCase().replace('BACKSPACE', '⌫');
     if (keys.includes(c)) {
       keyboardPressed(c);
     }
   }
 }
 
-const Main: React.FC = () => {
-  useEffect(() => { new p5(sketch) }, []);
-  return (<div style={{ textAlign: 'center' }} id='main' />);
+const App = () => {
+  useEffect(() => {
+    new P5Instance(sketch);
+  }, []);
+
+  return (
+    <div style={{
+      textAlign: 'center',
+      marginTop: getWindowData().marginTop,
+    }}
+      id='main'
+    />
+  );
 }
 
 export default App;
