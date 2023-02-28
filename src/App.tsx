@@ -10,7 +10,7 @@ const get2dArray = <T, _>(w: number, h: number, value: T) => {
 const sketch = (p5: P5Instance): void => {
   const windowData = getWindowData();
   const screen = windowData.screenSize;
-  const block = screen / 7;
+  const block = windowData.blockSize;
   const marginTop = windowData.marginTop;
   const marginSide = windowData.marginSide;
   const halfHeight = screen / 2 + marginTop;
@@ -112,7 +112,7 @@ const sketch = (p5: P5Instance): void => {
     }
   }
 
-  const updateAnswer = (): void => {
+  const setAnswer = (): void => {
     const message = "答えとなる5文字の英単語を入力してください\n未入力の場合はランダムに設定されます";
 
     while (!answer.length || answer.length !== 5
@@ -174,7 +174,6 @@ const sketch = (p5: P5Instance): void => {
     keyColors.fill('#818384', 0, keyboard.length);
     setKeyColors();
     answer = "";
-    // setAnswer("");
   }
 
   const showResult = (): void => {
@@ -182,7 +181,7 @@ const sketch = (p5: P5Instance): void => {
     const initButton = p5.createButton("PLAY AGAIN");
     initButton.size(block, block / 3);
     initButton.style('font-size', `${block / 8}px`);
-    initButton.position((p5.windowWidth - block) / 2, halfHeight - block / 4);
+    initButton.position((p5.windowWidth - block) / 2, halfHeight + marginTop - block * 0.75);
     initButton.mousePressed(() => {
       setGame();
       initButton.remove();
@@ -211,7 +210,7 @@ const sketch = (p5: P5Instance): void => {
   }
 
   p5.setup = (): void => {
-    p5.createCanvas(screen, screen + marginTop).parent('main');
+    p5.createCanvas(screen, screen + block).parent('main');
     p5.strokeWeight(block / 40);
     p5.rectMode(p5.CENTER);
     p5.textAlign(p5.CENTER, p5.CENTER);
@@ -222,13 +221,13 @@ const sketch = (p5: P5Instance): void => {
 
   p5.draw = (): void => {
     if (game.ends) return;
-    if (!answer.length) updateAnswer();
+    if (!answer.length) setAnswer();
 
     (p5 as any).clear();
     for (let row = 0; row < 5; row++) {
       for (let col = 0; col < 6; col++) {
         p5.push();
-        p5.translate((row + 1.5) * block, col * block + marginTop);
+        p5.translate((row + 1.5) * block, (col + 0.5) * block);
         if (words.currentIndex === row && words.count === col) {
           const ratio = p5.abs(p5.cos(p5.PI / 180 * game.flipAngle));
           p5.scale(1, ratio);
@@ -272,8 +271,7 @@ const sketch = (p5: P5Instance): void => {
 
       p5.noStroke();
       p5.fill('#FFFFFF');
-      p5.rect(screen / 2, halfHeight - block,
-        screen / 3, screen / 8);
+      p5.rect(screen / 2, halfHeight - block, screen / 3, screen / 8);
       p5.fill('#000000');
       p5.textSize(block / 5);
       p5.text("Not in word list", screen / 2, halfHeight - block);
